@@ -28,8 +28,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 app:
-  fakeotp: true       # This should be under a custom 'app' property to avoid conflicts
-  otp: 123456         # Default OTP value to use if fakeotp is enabled
+  fakeotp: true
+  otp: 123456
 
 
 

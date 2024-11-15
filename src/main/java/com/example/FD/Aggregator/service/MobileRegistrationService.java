@@ -31,9 +31,13 @@ public class MobileRegistrationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper(); // For JSON handling
 
+
+
     public String generateOTP(String mobile) {
         String uuid = UUID.randomUUID().toString();
-        String otp = appConfig.isFakeotp() ? "123456" : generateActualOTP();
+
+        // Check if fakeotp is enabled in the configuration
+        String otp = appConfig.isFakeotp() ? appConfig.getOtp() : generateActualOTP();
 
         // Create an instance of OTPDetailsDTO with isVerified set to false
         OTPDetailsDTO otpDetails = new OTPDetailsDTO(mobile, otp, false);
@@ -45,17 +49,18 @@ public class MobileRegistrationService {
             // Store in Redis with UUID as the key
             redisTemplate.opsForValue().set(uuid, redisValue);
 
-            return "OTP Generated Successfully ";
+            return "OTP Generated Successfully: " + otp;  // Optionally return or log the OTP for debugging
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return "Failed to generate OTP.";
         }
     }
 
-
     private String generateActualOTP() {
-        return String.valueOf((int) (Math.random() * 900000 + 100000)); // Generate a 6-digit OTP
+        // Generate a random 6-digit OTP
+        return String.valueOf((int) (Math.random() * 900000 + 100000));
     }
+
 
 
 
@@ -72,6 +77,7 @@ public class MobileRegistrationService {
                 String fakeOtp = appConfig.getOtp();
 
                 // Check if the OTP matches and if it has not been verified
+
                 if ((storedOTP.equals(otp) || (isFakeOtpEnabled && otp.equals(fakeOtp))) && !otpDetails.isVerified()) {
                     // Verification successful
                     otpDetails.setVerified(true); // Set isVerified to true

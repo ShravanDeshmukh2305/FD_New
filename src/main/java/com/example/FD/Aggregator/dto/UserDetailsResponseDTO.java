@@ -50,6 +50,7 @@ package com.example.FD.Aggregator.dto;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class UserDetailsResponseDTO {
@@ -76,10 +77,10 @@ public class UserDetailsResponseDTO {
         private String firstName;
         private String lastName;
         private String mobile;
-        private LocalDate createdDate;
-        private LocalDate updatedDate;
+        private LocalDateTime createdDate;
+        private LocalDateTime updatedDate;
 
-        public DataDTO(String refId, String email, String firstName, String lastName, String mobile, LocalDate createdDate, LocalDate updatedDate) {
+        public DataDTO(String refId, String email, String firstName, String lastName, String mobile, LocalDateTime createdDate, LocalDateTime updatedDate) {
             this.refId = refId;
             this.email = email;
             this.firstName = firstName;

@@ -31,30 +31,30 @@ public class EmailRegistrationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String generateEmailOTP(String email, String refNo) throws JsonProcessingException {
-        String emailOTP = appConfig.isFakeotp() ? "123456" : generateActualOTP();
-        String fetchMobileNo = (String) redisTemplate.opsForValue().get(refNo);
 
+    public String generateEmailOTP(String email, String refNo) throws JsonProcessingException {
+        // Check if fakeotp is enabled and use the appropriate OTP
+        String emailOTP = appConfig.isFakeotp() ? appConfig.getOtp() : generateActualOTP();
+
+        String fetchMobileNo = (String) redisTemplate.opsForValue().get(refNo);
         EmailOTPDetailsDTO Mono = objectMapper.readValue(fetchMobileNo, EmailOTPDetailsDTO.class);
 
         EmailOTPDetailsDTO emailOtpDetails = new EmailOTPDetailsDTO(email, emailOTP, false);
         emailOtpDetails.setMobile(Mono.getMobile());
 
         try {
-
             // Deserialize each JSON object into a Map
             Map<String, Object> emailOtpDetailsMap = objectMapper.readValue(objectMapper.writeValueAsString(emailOtpDetails), Map.class);
             Map<String, Object> storedValueMap = objectMapper.readValue((String) redisTemplate.opsForValue().get(refNo), Map.class);
 
-// Merge emailOtpDetailsMap into storedValueMap to create a single combined map
+            // Merge emailOtpDetailsMap into storedValueMap to create a single combined map
             storedValueMap.putAll(emailOtpDetailsMap);
 
-// Serialize the combined map back to a JSON string
+            // Serialize the combined map back to a JSON string
             String finalRedisValue = objectMapper.writeValueAsString(storedValueMap);
 
-// Store the combined JSON in Redis
+            // Store the combined JSON in Redis
             redisTemplate.opsForValue().set(refNo, finalRedisValue);
-
 
             return "Email OTP Generated Successfully";
         } catch (JsonProcessingException e) {
@@ -64,11 +64,11 @@ public class EmailRegistrationService {
     }
 
     private String generateActualOTP() {
+        // Generate a random 6-digit OTP
         return String.valueOf((int) (Math.random() * 900000 + 100000));
     }
 
 
-    // Inject the AppConfig
 
     @Transactional
     public VerifyEmailOTPResponseDTO verifyEmailOTP(String emailOTP, String refNo, String preferredLang) {
@@ -94,6 +94,7 @@ public class EmailRegistrationService {
                 User user = new User();
                 user.setRefNo(refNo);
                 user.setEmail(emailOtpDetails.getEmail());
+                user.setMobile(emailOtpDetails.getMobile());  // Set mobile number in the User entity
                 user.setPreferredLang(preferredLang);
                 userRepository.save(user);
 
@@ -138,7 +139,6 @@ public class EmailRegistrationService {
         return failureResponse;
     }
 }
-
 
 
 
